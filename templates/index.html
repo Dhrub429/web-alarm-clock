@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Alarm Clock</title>
+  <style>
+    body { font-family: Arial; background: #f9f9f9; text-align: center; padding: 40px; }
+    h1 { color: #333; }
+    input, select { padding: 8px; margin: 5px; }
+    button { padding: 10px 25px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #countdown { margin-top: 25px; font-size: 18px; color: #222; }
+  </style>
+</head>
+<body>
+  <h1>⏰ Online Alarm Clock with Snooze</h1>
+
+  <form method="post">
+    <label>Alarm Time (HH:MM:SS AM/PM):</label><br>
+    <input type="text" name="alarm_time" placeholder="07:30:00 PM" required><br>
+
+    <label>Snooze Hours:</label><br>
+    <input type="number" name="snooze_hours" value="0" min="0"><br>
+
+    <label>Snooze Minutes:</label><br>
+    <input type="number" name="snooze_minutes" value="5" min="0"><br>
+
+    <label>Snooze Seconds:</label><br>
+    <input type="number" name="snooze_seconds" value="0" min="0"><br>
+
+    <button type="submit">Set Alarm</button>
+  </form>
+
+  <h2>{{ message }}</h2>
+  <div id="countdown"></div>
+
+  <audio id="alarmSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
+  <script>
+    {% if message %}
+      const msg = "{{ message }}";
+      const parts = msg.match(/for (.+?)\./);
+      if (parts && parts[1]) {
+        const alarmTimeStr = parts[1];
+        const [time, ampm] = alarmTimeStr.split(" ");
+        const [hh, mm, ss] = time.split(":").map(x => parseInt(x));
+        let hour = hh % 12;
+        if (ampm === "PM") hour += 12;
+
+        const now = new Date();
+        const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, mm, ss);
+        if (target < now) target.setDate(target.getDate() + 1);
+
+        const updateTimer = () => {
+            const diff = target - new Date();
+            if (diff <= 0) {
+                document.getElementById("countdown").innerText = "⏰ Alarm Time!";
+                document.getElementById("alarmSound").play();
+                alert("Time's up!");
+                clearInterval(timerInterval);
+            } else {
+                const hrs = Math.floor(diff / (1000*60*60));
+                const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+                const secs = Math.floor((diff % (1000*60)) / 1000);
+                document.getElementById("countdown").innerText =
+                  `Next alarm in ${hrs}h ${mins}m ${secs}s`;
+            }
+        };
+        const timerInterval = setInterval(updateTimer, 1000);
+      }
+    {% endif %}
+  </script>
+</body>
+</html>
